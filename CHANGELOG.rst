@@ -2,6 +2,86 @@
 Changelog
 =========
 
+5.1.0 (2024-10-30)
+------------------
+
+* Fixed broken hooks handling on pytest 8.1 or later (the ``TypeError: import_path() missing 1 required keyword-only argument: 'consider_namespace_packages'`` issue).
+  Unfortunately this sets the minimum supported pytest version to 8.1.
+
+5.0.1 (2024-10-30)
+------------------
+
+* Fixed bad fixture check that broke down then `nbmake <https://pypi.org/project/nbmake/>`_ was enabled.
+
+5.0.0 (2024-10-29)
+------------------
+
+* Dropped support for now EOL Python 3.8. Also moved tests suite to only test the latest pytest versions (8.3.x).
+* Fix generate parametrize tests benchmark csv report errors (issue `#268 <https://github.com/ionelmc/pytest-benchmark/issues/268>`_).
+  Contributed by Johnny Huang in `#269 <https://github.com/ionelmc/pytest-benchmark/pull/269>`_.
+* Added the ``--benchmark-time-unit`` cli option for overriding the measurement unit used for display.
+  Contributed by Tony Kuo in `#257 <https://github.com/ionelmc/pytest-benchmark/pull/257>`_.
+* Fixes spelling in some help texts.
+  Contributed by Eugeniy in `#267 <https://github.com/ionelmc/pytest-benchmark/pull/267>`_.
+* Added new cprofile options:
+
+  - ``--benchmark-cprofile-loops=LOOPS`` - previously profiling only ran the function once, this allow customization.
+  - ``--benchmark-cprofile-top=COUNT`` - allows showing more rows.
+  - ``--benchmark-cprofile-dump=[FILENAME-PREFIX]`` - allows saving to a file (that you can load in `snakeviz <https://pypi.org/project/snakeviz/>`_, `RunSnakeRun <https://pypi.org/project/RunSnakeRun/>`_ or other tools).
+* Removed hidden dependency on `py.path <https://pypi.org/project/py/>`_ (replaced with pathlib).
+
+4.0.0 (2022-10-26)
+------------------
+
+* Dropped support for legacy Pythons (2.7, 3.6 or older).
+* Switched CI to GitHub Actions.
+* Removed dependency on the ``py`` library (that was not properly specified as a dependency anyway).
+* Fix skipping test in `test_utils.py` if appropriate VCS not available. Also fix typo.
+  Contributed by Sam James in `#211 <https://github.com/ionelmc/pytest-benchmark/pull/211>`_.
+* Added support for pytest 7.2.0 by using ``pytest.hookimpl`` and ``pytest.hookspec`` to configure hooks.
+  Contributed by Florian Bruhin in `#224 <https://github.com/ionelmc/pytest-benchmark/pull/224>`_.
+* Now no save is attempted if ``--benchmark-disable`` is used.
+  Fixes `#205 <https://github.com/ionelmc/pytest-benchmark/issues/205>`_.
+  Contributed by Friedrich Delgado in `#207 <https://github.com/ionelmc/pytest-benchmark/pull/207>`_.
+
+3.4.1 (2021-04-17)
+------------------
+
+* Republished with updated changelog.
+
+  I intended to publish a ``3.3.0`` release but I messed it up because bumpversion doesn't work well with pre-commit
+  apparently... thus ``3.4.0`` was set in by accident.
+
+
+3.4.0 (2021-04-17)
+------------------
+
+* Disable progress indication unless ``--benchmark-verbose`` is used.
+  Contributed by Dimitris Rozakis in `#149 <https://github.com/ionelmc/pytest-benchmark/pull/149>`_.
+* Added Python 3.9, dropped Python 3.5.
+  Contributed by Miroslav Šedivý in `#189 <https://github.com/ionelmc/pytest-benchmark/pull/189>`_.
+* Changed the "cpu" data in the json output to include everything that cpuinfo outputs, for better or worse as cpuinfo 6.0 changed some
+  fields. Users should now ensure they are an adequate cpuinfo package installed.
+  **MAY BE BACKWARDS INCOMPATIBLE**
+* Changed behavior of ``--benchmark-skip`` and ``--benchmark-only`` to apply early in the collection phase.
+  This means skipped tests won't make pytest run fixtures for said tests unnecessarily, but unfortunately this also means
+  the skipping behavior will be applied to any tests that requires a "benchmark" fixture, regardless if it would come from pytest-benchmark
+  or not.
+  **MAY BE BACKWARDS INCOMPATIBLE**
+* Added ``--benchmark-quiet`` - option to disable reporting and other information output.
+* Squelched unnecessary warning when ``--benchmark-disable`` and save options are used.
+  Fixes `#199 <https://github.com/ionelmc/pytest-benchmark/issues/199>`_.
+* ``PerformanceRegression`` exception no longer inherits ``pytest.UsageError`` (apparently a *final* class).
+
+3.2.3 (2020-01-10)
+------------------
+
+* Fixed "already-imported" pytest warning. Contributed by Jonathan Simon Prates in
+  `#151 <https://github.com/ionelmc/pytest-benchmark/pull/151>`_.
+* Fixed breakage that occurs when benchmark is disabled while using cprofile feature (by disabling cprofile too).
+* Dropped Python 3.4 from the test suite and updated test deps.
+* Fixed ``pytest_benchmark.utils.clonefunc`` to work on Python 3.8.
+
 3.2.2 (2017-01-12)
 ------------------
 
@@ -29,7 +109,6 @@ Changelog
 * Added support for Pytest 4.1.
 * Various formatting, spelling and documentation fixes. Contributed by
   Ken Crowell, Ofek Lev, Matthew Feickert, Jose Eduardo, Anton Lodder, Alexander Duryagin and Grygorii Iermolenko in
-  `#97 <https://github.com/ionelmc/pytest-benchmark/pull/97>`_,
   `#97 <https://github.com/ionelmc/pytest-benchmark/pull/97>`_,
   `#105 <https://github.com/ionelmc/pytest-benchmark/pull/105>`_,
   `#110 <https://github.com/ionelmc/pytest-benchmark/pull/110>`_,
@@ -101,10 +180,10 @@ Changelog
 3.1.0a1 (2016-10-29)
 --------------------
 
-* Added ``--benchmark-colums`` command line option. It selects what columns are displayed in the result table. Contributed by
+* Added ``--benchmark-columns`` command line option. It selects what columns are displayed in the result table. Contributed by
   Antonio Cuni in `#34 <https://github.com/ionelmc/pytest-benchmark/pull/34>`_.
 * Added support for grouping by specific test parametrization (``--benchmark-group-by=param:NAME`` where ``NAME`` is your
-  param name). Contributed by Antonio Cuni in `#37 <https://github.com/ionelmc/pytest-benchmark/pull/37>`_.
+  param name). Contributed by Antonio Cuni in `#37 <https://github.com/ionelmc/pytest-benchmark/pull/37>`__.
 * Added support for ``name`` or ``fullname`` in ``--benchmark-sort``.
   Contributed by Antonio Cuni in `#37 <https://github.com/ionelmc/pytest-benchmark/pull/37>`_.
 * Changed signature for ``pytest_benchmark_generate_json`` hook to take 2 new arguments: ``machine_info`` and ``commit_info``.
@@ -116,7 +195,7 @@ Changelog
 * Added a command line tool to compare previous data: ``py.test-benchmark``. It has two commands:
 
   * ``list`` - Lists all the available files.
-  * ``compare`` - Displays result tables. Takes optional arguments:
+  * ``compare`` - Displays result tables. Takes options:
 
     * ``--sort=COL``
     * ``--group-by=LABEL``

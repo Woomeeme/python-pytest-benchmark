@@ -1,0 +1,20 @@
+From: =?utf-8?q?Timo_R=C3=B6hling?= <roehling@debian.org>
+Date: Mon, 4 Nov 2024 12:47:59 +0100
+Subject: Skip notebook tests
+
+---
+ pytest.ini | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/pytest.ini b/pytest.ini
+index 922eb16..141d22c 100644
+--- a/pytest.ini
++++ b/pytest.ini
+@@ -25,7 +25,6 @@ addopts =
+     --ignore=src/pytest_benchmark/pep418.py
+     --doctest-modules
+     --doctest-glob=\*.rst
+-    --nbmake
+     --tb=short
+ testpaths =
+     tests

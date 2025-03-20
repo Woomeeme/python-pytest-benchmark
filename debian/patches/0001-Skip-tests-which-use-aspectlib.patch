@@ -1,0 +1,36 @@
+From: =?utf-8?q?Timo_R=C3=B6hling?= <roehling@debian.org>
+Date: Thu, 14 Sep 2023 20:57:53 +0200
+Subject: Skip tests which use aspectlib
+
+aspectlib is currently not packaged in Debian
+
+Forwarded: not-needed
+---
+ tests/test_with_testcase.py | 1 +
+ tests/test_with_weaver.py   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/tests/test_with_testcase.py b/tests/test_with_testcase.py
+index a1964e9..13d10db 100644
+--- a/tests/test_with_testcase.py
++++ b/tests/test_with_testcase.py
+@@ -3,6 +3,7 @@ import unittest
+ 
+ import pytest
+ 
++aspectlib = pytest.importorskip("aspectlib")
+ 
+ class TerribleTerribleWayToWriteTests(unittest.TestCase):
+     @pytest.fixture(autouse=True)
+diff --git a/tests/test_with_weaver.py b/tests/test_with_weaver.py
+index 1ec5dc2..1de65e1 100644
+--- a/tests/test_with_weaver.py
++++ b/tests/test_with_weaver.py
+@@ -2,6 +2,7 @@ import time
+ 
+ import pytest
+ 
++aspectlib = pytest.importorskip("aspectlib")
+ 
+ class Foo:
+     def __init__(self, arg=0.01):

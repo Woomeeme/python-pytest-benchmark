@@ -21,20 +21,20 @@ from pytest_benchmark.stats import normalize_stats
 from pytest_benchmark.storage.file import FileStorage
 from pytest_benchmark.utils import NAME_FORMATTERS
 from pytest_benchmark.utils import DifferenceRegressionCheck
-from pytest_benchmark.utils import Path
+from pathlib import Path
 from pytest_benchmark.utils import PercentageRegressionCheck
 from pytest_benchmark.utils import get_machine_id
 
-pytest_plugins = "pytester"
+pytest_plugins = 'pytester'
 
 
-THIS = py.path.local(__file__)
-STORAGE = THIS.dirpath(THIS.purebasename)
+THIS = Path(__file__)
+STORAGE = THIS.with_suffix('')
 
-JSON_DATA = json.loads(STORAGE.listdir('0030_*.json')[0].read_text(encoding='utf8'))
-JSON_DATA["machine_info"] = {'foo': 'bar'}
-JSON_DATA["commit_info"] = {'foo': 'bar'}
-list(normalize_stats(bench['stats']) for bench in JSON_DATA["benchmarks"])
+JSON_DATA = json.loads(next(STORAGE.glob('0030_*.json')).read_text(encoding='utf8'))
+JSON_DATA['machine_info'] = {'foo': 'bar'}
+JSON_DATA['commit_info'] = {'foo': 'bar'}
+list(normalize_stats(bench['stats']) for bench in JSON_DATA['benchmarks'])
 
 
 class Namespace(object):
@@ -54,7 +54,7 @@ class Namespace(object):
 class LooseFileLike(BytesIO):
     def close(self):
         value = self.getvalue()
-        super(LooseFileLike, self).close()
+        super().close()
         self.getvalue = lambda: value
 
 
@@ -62,18 +62,19 @@ class MockSession(BenchmarkSession):
     def __init__(self, name_format):
         self.histogram = True
         self.verbose = False
+        self.quiet = False
         self.benchmarks = []
         self.performance_regressions = []
-        self.sort = u"min"
+        self.sort = 'min'
         self.compare = '0001'
         logger = logging.getLogger(__name__)
         self.logger = Namespace(
             debug=lambda *args, **_kwargs: logger.debug(*args),
             info=lambda *args, **_kwargs: logger.info(*args),
-            warn=lambda *args, **_kwargs: logger.warn(*args),
+            warning=lambda *args, **_kwargs: logger.warning(*args),
             error=lambda *args, **_kwargs: logger.error(*args),
         )
-        self.machine_id = "FoobarOS"
+        self.machine_id = 'FoobarOS'
         self.machine_info = {'foo': 'bar'}
         self.save = self.autosave = self.json = False
         self.name_format = NAME_FORMATTERS[name_format]
@@ -84,34 +85,40 @@ class MockSession(BenchmarkSession):
             'cprofile': False,
         }
         self.cprofile_sort_by = 'cumtime'
+        self.cprofile_loops = 1
+        self.cprofile_top = 25
         self.compare_fail = []
-        self.config = Namespace(hook=Namespace(
-            pytest_benchmark_scale_unit=pytest_benchmark_scale_unit,
-            pytest_benchmark_group_stats=pytest_benchmark_group_stats,
-            pytest_benchmark_generate_machine_info=lambda **kwargs: {'foo': 'bar'},
-            pytest_benchmark_update_machine_info=lambda **kwargs: None,
-            pytest_benchmark_compare_machine_info=pytest_benchmark_compare_machine_info,
-            pytest_benchmark_generate_json=pytest_benchmark_generate_json,
-            pytest_benchmark_update_json=lambda **kwargs: None,
-            pytest_benchmark_generate_commit_info=lambda **kwargs: {'foo': 'bar'},
-            pytest_benchmark_update_commit_info=lambda **kwargs: None,
-        ))
+        self.config = Namespace(
+            hook=Namespace(
+                pytest_benchmark_scale_unit=pytest_benchmark_scale_unit,
+                pytest_benchmark_group_stats=pytest_benchmark_group_stats,
+                pytest_benchmark_generate_machine_info=lambda **kwargs: {'foo': 'bar'},
+                pytest_benchmark_update_machine_info=lambda **kwargs: None,
+                pytest_benchmark_compare_machine_info=pytest_benchmark_compare_machine_info,
+                pytest_benchmark_generate_json=pytest_benchmark_generate_json,
+                pytest_benchmark_update_json=lambda **kwargs: None,
+                pytest_benchmark_generate_commit_info=lambda **kwargs: {'foo': 'bar'},
+                pytest_benchmark_update_commit_info=lambda **kwargs: None,
+            )
+        )
         self.storage = FileStorage(str(STORAGE), default_machine_id=get_machine_id(), logger=self.logger)
         self.group_by = 'group'
-        self.columns = ['min', 'max', 'mean', 'stddev', 'median', 'iqr',
-                        'outliers', 'rounds', 'iterations', 'ops']
-        for bench_file, data in reversed(list(self.storage.load("[0-9][0-9][0-9][0-9]_*"))):
+        self.columns = ['min', 'max', 'mean', 'stddev', 'median', 'iqr', 'outliers', 'rounds', 'iterations', 'ops']
+        for bench_file, data in reversed(list(self.storage.load('[0-9][0-9][0-9][0-9]_*'))):
             self.benchmarks.extend(
                 Namespace(
-                    as_dict=lambda include_data=False, stats=True, flat=False, _bench=bench, cprofile='cumtime':
-                        dict(_bench, **_bench["stats"]) if flat else dict(_bench),
+                    as_dict=lambda include_data=False, stats=True, flat=False, _bench=bench, cprofile='cumtime': dict(
+                        _bench, **_bench['stats']
+                    )
+                    if flat
+                    else dict(_bench),
                     name=bench['name'],
                     fullname=bench['fullname'],
                     group=bench['group'],
                     options=bench['options'],
                     has_error=False,
                     params=None,
-                    **bench['stats']
+                    **bench['stats'],
                 )
                 for bench in data['benchmarks']
             )
@@ -151,9 +158,9 @@ def sess(request, name_format):
 def make_logger(sess):
     output = StringIO()
     sess.logger = sess.storage.logger = Namespace(
-        warn=lambda text, **opts: output.write(force_text(text) + u'\n'),
-        info=lambda text, **opts: output.write(force_text(text) + u'\n'),
-        error=lambda text: output.write(force_text(text) + u'\n'),
+        warning=lambda text, **opts: output.write(force_text(text) + '\n'),
+        info=lambda text, **opts: output.write(force_text(text) + '\n'),
+        error=lambda text: output.write(force_text(text) + '\n'),
     )
     return output
 
@@ -165,176 +172,198 @@ def test_rendering(sess):
     sess.sort = 'name'
     sess.handle_loading()
     sess.finish()
-    sess.display(Namespace(
-        ensure_newline=lambda: None,
-        write_line=lambda line, **opts: output.write(force_text(line) + u'\n'),
-        write=lambda text, **opts: output.write(force_text(text)),
-        rewrite=lambda text, **opts: output.write(force_text(text)),
-    ))
+    sess.display(
+        Namespace(
+            ensure_newline=lambda: None,
+            write_line=lambda line, **opts: output.write(force_text(line) + '\n'),
+            write=lambda text, **opts: output.write(force_text(text)),
+            rewrite=lambda text, **opts: output.write(force_text(text)),
+        )
+    )
 
 
 def test_regression_checks(sess, name_format):
     output = make_logger(sess)
     sess.handle_loading()
     sess.performance_regressions = []
-    sess.compare_fail = [
-        PercentageRegressionCheck("stddev", 5),
-        DifferenceRegressionCheck("max", 0.000001)
-    ]
+    sess.compare_fail = [PercentageRegressionCheck('stddev', 5), DifferenceRegressionCheck('max', 0.000001)]
     sess.finish()
-    pytest.raises(PerformanceRegression, sess.display, Namespace(
-        ensure_newline=lambda: None,
-        write_line=lambda line, **opts: output.write(force_text(line) + u'\n'),
-        write=lambda text, **opts: output.write(force_text(text)),
-        rewrite=lambda text, **opts: output.write(force_text(text)),
-    ))
+    pytest.raises(
+        PerformanceRegression,
+        sess.display,
+        Namespace(
+            ensure_newline=lambda: None,
+            write_line=lambda line, **opts: output.write(force_text(line) + '\n'),
+            write=lambda text, **opts: output.write(force_text(text)),
+            rewrite=lambda text, **opts: output.write(force_text(text)),
+        ),
+    )
     print(output.getvalue())
-    assert sess.performance_regressions == {
-        'normal': [
-            ('test_xfast_parametrized[0] (0001_b87b9aa)',
-             "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000"),
-            ('test_xfast_parametrized[0] (0001_b87b9aa)',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000")
-        ],
-        'short': [
-            ('xfast_parametrized[0] (0001)',
-             "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000"),
-            ('xfast_parametrized[0] (0001)',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000")
-        ],
-        'long': [
-            ('tests/test_normal.py::test_xfast_parametrized[0] (0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted-changes)',
-             "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000"),
-            ('tests/test_normal.py::test_xfast_parametrized[0] (0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted-changes)',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000")
-        ],
-        'trial': [
-            ('0001',
-             "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000"),
-            ('0001',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000")
-        ],
-    }[name_format]
+    assert (
+        sess.performance_regressions
+        == {
+            'normal': [
+                (
+                    'test_xfast_parametrized[0] (0001_b87b9aa)',
+                    "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000",
+                ),
+                (
+                    'test_xfast_parametrized[0] (0001_b87b9aa)',
+                    "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000",
+                ),
+            ],
+            'short': [
+                ('xfast_parametrized[0] (0001)', "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000"),
+                ('xfast_parametrized[0] (0001)', "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000"),
+            ],
+            'long': [
+                (
+                    'tests/test_normal.py::test_xfast_parametrized[0] (0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted-changes)',
+                    "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000",
+                ),
+                (
+                    'tests/test_normal.py::test_xfast_parametrized[0] (0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted-changes)',
+                    "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000",
+                ),
+            ],
+            'trial': [
+                ('0001', "Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000"),
+                ('0001', "Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000"),
+            ],
+        }[name_format]
+    )
     output = make_logger(sess)
     pytest.raises(PerformanceRegression, sess.check_regressions)
     print(output.getvalue())
-    assert output.getvalue() == {
-        'short': """Performance has regressed:
+    assert (
+        output.getvalue()
+        == {
+            'short': """Performance has regressed:
 \txfast_parametrized[0] (0001) - Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000
 \txfast_parametrized[0] (0001) - Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000
 """,
-        'normal': """Performance has regressed:
+            'normal': """Performance has regressed:
 \ttest_xfast_parametrized[0] (0001_b87b9aa) - Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000
 \ttest_xfast_parametrized[0] (0001_b87b9aa) - Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000
 """,
-        'long': """Performance has regressed:
+            'long': """Performance has regressed:
 \ttests/test_normal.py::test_xfast_parametrized[0] (0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted-changes) - Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000
 \ttests/test_normal.py::test_xfast_parametrized[0] (0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted-changes) - Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000
 """,
-        'trial': """Performance has regressed:
+            'trial': """Performance has regressed:
 \t0001 - Field 'stddev' has failed PercentageRegressionCheck: 23.331641765 > 5.000000000
 \t0001 - Field 'max' has failed DifferenceRegressionCheck: 0.000001843 > 0.000001000
-"""
-    }[name_format]
+""",
+        }[name_format]
+    )
 
 
-@pytest.mark.skipif(sys.version_info[:2] < (2, 7),
-                    reason="Something weird going on, see: https://bugs.python.org/issue4482")
+@pytest.mark.skipif(sys.version_info[:2] < (2, 7), reason='Something weird going on, see: https://bugs.python.org/issue4482')
 def test_regression_checks_inf(sess, name_format):
     output = make_logger(sess)
     sess.compare = '0002'
     sess.handle_loading()
     sess.performance_regressions = []
-    sess.compare_fail = [
-        PercentageRegressionCheck("stddev", 5),
-        DifferenceRegressionCheck("max", 0.000001)
-    ]
+    sess.compare_fail = [PercentageRegressionCheck('stddev', 5), DifferenceRegressionCheck('max', 0.000001)]
     sess.finish()
-    pytest.raises(PerformanceRegression, sess.display, Namespace(
-        ensure_newline=lambda: None,
-        write_line=lambda line, **opts: output.write(force_text(line) + u'\n'),
-        write=lambda text, **opts: output.write(force_text(text)),
-        rewrite=lambda text, **opts: output.write(force_text(text)),
-    ))
+    pytest.raises(
+        PerformanceRegression,
+        sess.display,
+        Namespace(
+            ensure_newline=lambda: None,
+            write_line=lambda line, **opts: output.write(force_text(line) + '\n'),
+            write=lambda text, **opts: output.write(force_text(text)),
+            rewrite=lambda text, **opts: output.write(force_text(text)),
+        ),
+    )
     print(output.getvalue())
-    assert sess.performance_regressions == {
-        'normal': [
-            ('test_xfast_parametrized[0] (0002_b87b9aa)',
-             "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
-            ('test_xfast_parametrized[0] (0002_b87b9aa)',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000")
-        ],
-        'short': [
-            ('xfast_parametrized[0] (0002)',
-             "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
-            ('xfast_parametrized[0] (0002)',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000")
-        ],
-        'long': [
-            ('tests/test_normal.py::test_xfast_parametrized[0] '
-             '(0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes)',
-             "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
-            ('tests/test_normal.py::test_xfast_parametrized[0] '
-             '(0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes)',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > "
-             '0.000001000')
-        ],
-        'trial': [
-            ('0002',
-             "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
-            ('0002',
-             "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000")
-        ]
-    }[name_format]
+    assert (
+        sess.performance_regressions
+        == {
+            'normal': [
+                ('test_xfast_parametrized[0] (0002_b87b9aa)', "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
+                (
+                    'test_xfast_parametrized[0] (0002_b87b9aa)',
+                    "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000",
+                ),
+            ],
+            'short': [
+                ('xfast_parametrized[0] (0002)', "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
+                ('xfast_parametrized[0] (0002)', "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000"),
+            ],
+            'long': [
+                (
+                    'tests/test_normal.py::test_xfast_parametrized[0] '
+                    '(0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes)',
+                    "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000",
+                ),
+                (
+                    'tests/test_normal.py::test_xfast_parametrized[0] '
+                    '(0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes)',
+                    "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > " '0.000001000',
+                ),
+            ],
+            'trial': [
+                ('0002', "Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000"),
+                ('0002', "Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000"),
+            ],
+        }[name_format]
+    )
     output = make_logger(sess)
     pytest.raises(PerformanceRegression, sess.check_regressions)
     print(output.getvalue())
-    assert output.getvalue() == {
-        'short': """Performance has regressed:
+    assert (
+        output.getvalue()
+        == {
+            'short': """Performance has regressed:
 \txfast_parametrized[0] (0002) - Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000
 \txfast_parametrized[0] (0002) - Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000
 """,
-        'normal': """Performance has regressed:
+            'normal': """Performance has regressed:
 \ttest_xfast_parametrized[0] (0002_b87b9aa) - Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000
 \ttest_xfast_parametrized[0] (0002_b87b9aa) - Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000
 """,
-        'long': """Performance has regressed:
+            'long': """Performance has regressed:
 \ttests/test_normal.py::test_xfast_parametrized[0] (0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes) - Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000
 \ttests/test_normal.py::test_xfast_parametrized[0] (0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes) - Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000
 """,
-        'trial': """Performance has regressed:
+            'trial': """Performance has regressed:
 \t0002 - Field 'stddev' has failed PercentageRegressionCheck: inf > 5.000000000
 \t0002 - Field 'max' has failed DifferenceRegressionCheck: 0.000005551 > 0.000001000
-"""
-    }[name_format]
+""",
+        }[name_format]
+    )
 
 
 def test_compare_1(sess, LineMatcher):
     output = make_logger(sess)
     sess.handle_loading()
     sess.finish()
-    sess.display(Namespace(
-        ensure_newline=lambda: None,
-        write_line=lambda line, **opts: output.write(force_text(line) + u'\n'),
-        write=lambda text, **opts: output.write(force_text(text)),
-        rewrite=lambda text, **opts: output.write(force_text(text)),
-    ))
+    sess.display(
+        Namespace(
+            ensure_newline=lambda: None,
+            write_line=lambda line, **opts: output.write(force_text(line) + '\n'),
+            write=lambda text, **opts: output.write(force_text(text)),
+            rewrite=lambda text, **opts: output.write(force_text(text)),
+        )
+    )
     print(output.getvalue())
-    LineMatcher(output.getvalue().splitlines()).fnmatch_lines([
-        'Benchmark machine_info is different. Current: {foo: "bar"} VS saved: {machine: "x86_64", node: "minibox", processor: "x86_64", python_compiler: "GCC 4.6.3", python_implementation: "CPython", python_version: "2.7.3", release: "3.13.0-55-generic", system: "Linux"} (location: tests*test_storage).',
-        'Comparing against benchmarks from: 0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted'
-        '-changes.json',
-        '',
-        '*------------------------------------------------------------------------ benchmark: 2 tests -----------------------------------------------------------------------*',
-        'Name (time in ns) * Min                 * Max                Mean              StdDev              Median                IQR            Outliers  Rounds  Iterations  OPS (Mops/s) *',
-        '-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
-        '*0001* 217.3145 (1.0)      11*447.3891 (1.0)      262.2408 (1.00)     214.0442 (1.0)      220.1664 (1.00)     38.2154 (2.03)      90;1878    9987         418        3.8133 (1.00)*',
-        '*NOW*  217.9511 (1.00)     13*290.0380 (1.16)     261.2051 (1.0)      263.9842 (1.23)     220.1638 (1.0)      18.8080 (1.0)      160;1726    9710         431        3.8284 (1.0)*',
-        '--------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
-        'Legend:',
-        '  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.',
-        '  OPS: Operations Per Second, computed as 1 / Mean',
-    ])
+    LineMatcher(output.getvalue().splitlines()).fnmatch_lines(
+        [
+            'Benchmark machine_info is different. Current: {"foo": "bar"} VS saved: {"machine": "x86_64", "node": "minibox", "processor": "x86_64", "python_compiler": "GCC 4.6.3", "python_implementation": "CPython", "python_version": "2.7.3", "release": "3.13.0-55-generic", "system": "Linux"} (location: tests/test_storage).',
+            'Comparing against benchmarks from: 0001_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190343_uncommitted' '-changes.json',
+            '',
+            '*------------------------------------------------------------------------ benchmark: 2 tests -----------------------------------------------------------------------*',
+            'Name (time in ns) * Min                 * Max                Mean              StdDev              Median                IQR            Outliers  Rounds  Iterations  OPS (Mops/s) *',
+            '-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
+            '*0001* 217.3145 (1.0)      11*447.3891 (1.0)      262.2408 (1.00)     214.0442 (1.0)      220.1664 (1.00)     38.2154 (2.03)      90;1878    9987         418        3.8133 (1.00)*',
+            '*NOW*  217.9511 (1.00)     13*290.0380 (1.16)     261.2051 (1.0)      263.9842 (1.23)     220.1638 (1.0)      18.8080 (1.0)      160;1726    9710         431        3.8284 (1.0)*',
+            '--------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
+            'Legend:',
+            '  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.',
+            '  OPS: Operations Per Second, computed as 1 / Mean',
+        ]
+    )
 
 
 def test_compare_2(sess, LineMatcher):
@@ -342,31 +371,35 @@ def test_compare_2(sess, LineMatcher):
     sess.compare = '0002'
     sess.handle_loading()
     sess.finish()
-    sess.display(Namespace(
-        ensure_newline=lambda: None,
-        write_line=lambda line, **opts: output.write(force_text(line) + u'\n'),
-        section=lambda line, **opts: output.write(force_text(line) + u'\n'),
-        write=lambda text, **opts: output.write(force_text(text)),
-        rewrite=lambda text, **opts: output.write(force_text(text)),
-    ))
+    sess.display(
+        Namespace(
+            ensure_newline=lambda: None,
+            write_line=lambda line, **opts: output.write(force_text(line) + '\n'),
+            section=lambda line, **opts: output.write(force_text(line) + '\n'),
+            write=lambda text, **opts: output.write(force_text(text)),
+            rewrite=lambda text, **opts: output.write(force_text(text)),
+        )
+    )
     print(output.getvalue())
-    LineMatcher(output.getvalue().splitlines()).fnmatch_lines([
-        'Benchmark machine_info is different. Current: {foo: "bar"} VS saved: {machine: "x86_64", node: "minibox", processor: "x86_64", python_compiler: "GCC 4.6.3", python_implementation: "CPython", python_version: "2.7.3", release: "3.13.0-55-generic", system: "Linux"} (location: tests*test_storage).',
-        'Comparing against benchmarks from: 0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes.json',
-        '',
-        '*------------------------------------------------------------------------ benchmark: 2 tests -----------------------------------------------------------------------*',
-        'Name (time in ns) * Min                 *Max                Mean              StdDev              Median                IQR            Outliers  Rounds  Iterations  OPS (Mops/s)*',
-        '--------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
-        '*0002* 216.9028 (1.0)       7*739.2997 (1.0)      254.0585 (1.0)        0.0000 (1.0)      219.8103 (1.0)      27.3309 (1.45)     235;1688   11009         410        3.9361 (1.0)*',
-        '*NOW*  217.9511 (1.00)     13*290.0380 (1.72)     261.2051 (1.03)     263.9842 (inf)      220.1638 (1.00)     18.8080 (1.0)      160;1726    9710         431        3.8284 (0.97)*',
-        '--------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
-        'Legend:',
-        '  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.',
-        '  OPS: Operations Per Second, computed as 1 / Mean',
-    ])
+    LineMatcher(output.getvalue().splitlines()).fnmatch_lines(
+        [
+            'Benchmark machine_info is different. Current: {"foo": "bar"} VS saved: {"machine": "x86_64", "node": "minibox", "processor": "x86_64", "python_compiler": "GCC 4.6.3", "python_implementation": "CPython", "python_version": "2.7.3", "release": "3.13.0-55-generic", "system": "Linux"} (location: tests/test_storage).',
+            'Comparing against benchmarks from: 0002_b87b9aae14ff14a7887a6bbaa9731b9a8760555d_20150814_190348_uncommitted-changes.json',
+            '',
+            '*------------------------------------------------------------------------ benchmark: 2 tests -----------------------------------------------------------------------*',
+            'Name (time in ns) * Min                 *Max                Mean              StdDev              Median                IQR            Outliers  Rounds  Iterations  OPS (Mops/s)*',
+            '--------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
+            '*0002* 216.9028 (1.0)       7*739.2997 (1.0)      254.0585 (1.0)        0.0000 (1.0)      219.8103 (1.0)      27.3309 (1.45)     235;1688   11009         410        3.9361 (1.0)*',
+            '*NOW*  217.9511 (1.00)     13*290.0380 (1.72)     261.2051 (1.03)     263.9842 (inf)      220.1638 (1.00)     18.8080 (1.0)      160;1726    9710         431        3.8284 (0.97)*',
+            '--------------------------------------------------------------------------------------------------------------------------------------------------------------------*',
+            'Legend:',
+            '  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.',
+            '  OPS: Operations Per Second, computed as 1 / Mean',
+        ]
+    )
 
 
-@freeze_time("2015-08-15T00:04:18.687119")
+@freeze_time('2015-08-15T00:04:18.687119')
 def test_save_json(sess, tmpdir, monkeypatch):
     monkeypatch.setattr(plugin, '__version__', '2.5.0')
     sess.save = False
@@ -378,7 +411,7 @@ def test_save_json(sess, tmpdir, monkeypatch):
     assert json.loads(sess.json.getvalue().decode()) == JSON_DATA
 
 
-@freeze_time("2015-08-15T00:04:18.687119")
+@freeze_time('2015-08-15T00:04:18.687119')
 def test_save_with_name(sess, tmpdir, monkeypatch):
     monkeypatch.setattr(plugin, '__version__', '2.5.0')
     sess.save = 'foobar'
@@ -393,7 +426,7 @@ def test_save_with_name(sess, tmpdir, monkeypatch):
     assert json.loads(files[0].read_text(encoding='utf8')) == JSON_DATA
 
 
-@freeze_time("2015-08-15T00:04:18.687119")
+@freeze_time('2015-08-15T00:04:18.687119')
 def test_save_no_name(sess, tmpdir, monkeypatch):
     monkeypatch.setattr(plugin, '__version__', '2.5.0')
     sess.save = True
@@ -407,7 +440,7 @@ def test_save_no_name(sess, tmpdir, monkeypatch):
     assert json.loads(files[0].read_text(encoding='utf8')) == JSON_DATA
 
 
-@freeze_time("2015-08-15T00:04:18.687119")
+@freeze_time('2015-08-15T00:04:18.687119')
 def test_save_with_error(sess, tmpdir, monkeypatch):
     monkeypatch.setattr(plugin, '__version__', '2.5.0')
     sess.save = True
@@ -423,13 +456,13 @@ def test_save_with_error(sess, tmpdir, monkeypatch):
     assert json.loads(files[0].read_text(encoding='utf8')) == {
         'benchmarks': [],
         'commit_info': {'foo': 'bar'},
-        'datetime': '2015-08-15T00:04:18.687119',
+        'datetime': '2015-08-15T00:04:18.687119+00:00',
         'machine_info': {'foo': 'bar'},
-        'version': '2.5.0'
+        'version': '2.5.0',
     }
 
 
-@freeze_time("2015-08-15T00:04:18.687119")
+@freeze_time('2015-08-15T00:04:18.687119')
 def test_autosave(sess, tmpdir, monkeypatch):
     monkeypatch.setattr(plugin, '__version__', '2.5.0')
     sess.save = False

@@ -5,9 +5,9 @@ Authors
 * Ionel Cristian Mărieș - https://blog.ionelmc.ro
 * Marc Abramowitz - http://marc-abramowitz.com
 * Dave Collins - https://github.com/thedavecollins
-* Stefan Krastanov - http://blog.krastanov.org/
+* Stefan Krastanov - http://blog.krastanov.org
 * Thomas Waldmann - https://github.com/ThomasWaldmann
-* Antonio Cuni - http://antocuni.eu/en/
+* Antonio Cuni - http://antocuni.eu
 * Petr Šebek - https://github.com/Artimi
 * Swen Kooij - https://github.com/Photonios
 * "varac" - https://github.com/varac
@@ -27,3 +27,12 @@ Authors
 * Alexander Duryagin - https://github.com/daa
 * Stanislav Levin - https://github.com/stanislavlevin
 * Grygorii Iermolenko - https://github.com/gyermolenko
+* Jonathan Simon Prates - https://github.com/jonathansp
+* Miroslav Šedivý - https://github.com/eumiro
+* Dimitris Rozakis - https://github.com/dimrozakis
+* Friedrich Delgado - https://github.com/TauPan
+* Sam James - https://github.com/thesamesam
+* Florian Bruhin - https://github.com/The-Compiler
+* Johnny Huang - https://github.com/jnhyperion
+* Tony Kuo - https://github.com/tony92151
+* Eugeniy - https://github.com/zcoder

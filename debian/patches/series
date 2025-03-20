@@ -1,0 +1,4 @@
+0001-Skip-tests-which-use-aspectlib.patch
+0002-Do-not-fail-on-specific-warnings.patch
+0003-Handle-architecture-exception-thrown-by-cpuinfo.patch
+0004-Skip-notebook-tests.patch

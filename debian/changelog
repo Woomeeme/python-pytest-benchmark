@@ -1,3 +1,50 @@
+python-pytest-benchmark (5.1.0-1) unstable; urgency=medium
+
+  * New upstream version 5.1.0
+  * Update patches
+    - Drop 0003-Fix-clonefunc-for-Python-3.11.patch
+    - Drop 0004-Fix-pytest-7.2-compat.patch
+    - Drop 0006-Ignore-DeprecationWarning-about-datetime-UTC.patch
+    Those patches have been superseded by upstream changes.
+  * Bump Standards-Version to 4.7.0
+
+ -- Timo Röhling <roehling@debian.org>  Mon, 04 Nov 2024 12:48:15 +0100
+
+python-pytest-benchmark (4.0.0-4) unstable; urgency=medium
+
+  * Update d/watch to latest GitHub recipe
+  * Skip unit test mismatching argparser help text in Python 3.13
+    (Closes: #1082260)
+
+ -- Timo Röhling <roehling@debian.org>  Tue, 15 Oct 2024 21:04:02 +0200
+
+python-pytest-benchmark (4.0.0-3) unstable; urgency=medium
+
+  * Ignore DeprecationWarning about datetime UTC (Closes: #1058409)
+
+ -- Timo Röhling <roehling@debian.org>  Tue, 12 Dec 2023 21:03:34 +0100
+
+python-pytest-benchmark (4.0.0-2) unstable; urgency=medium
+
+  * Handle architecture exception thrown by cpuinfo
+
+ -- Timo Röhling <roehling@debian.org>  Sat, 16 Sep 2023 13:46:46 +0200
+
+python-pytest-benchmark (4.0.0-1) unstable; urgency=medium
+
+  * Replace retired maintainer with Debian Python Team (Closes: #1050625)
+  * New upstream version 4.0.0
+  * Switch to debhelper 13
+  * Bump Standards-Version to 4.6.2
+  * Switch to pybuild-autopkgtest
+  * Clean up d/rules and d/control
+  * Skip tests which use unpackaged aspectlib
+  * Do not fail tests on certain warnings
+  * Python 3.11 and PyTest 7.2 compat fixes
+  * Update d/copyright
+
+ -- Timo Röhling <roehling@debian.org>  Fri, 15 Sep 2023 23:46:23 +0200
+
 python-pytest-benchmark (3.2.2-4) unstable; urgency=medium
 
   * Team upload.

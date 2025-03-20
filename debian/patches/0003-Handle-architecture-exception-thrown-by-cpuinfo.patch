@@ -1,0 +1,27 @@
+From: =?utf-8?q?Timo_R=C3=B6hling?= <roehling@debian.org>
+Date: Sat, 16 Sep 2023 13:46:34 +0200
+Subject: Handle architecture exception thrown by cpuinfo
+
+---
+ src/pytest_benchmark/plugin.py | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/pytest_benchmark/plugin.py b/src/pytest_benchmark/plugin.py
+index 8ce16e2..223d913 100644
+--- a/src/pytest_benchmark/plugin.py
++++ b/src/pytest_benchmark/plugin.py
+@@ -389,9 +389,11 @@ def pytest_terminal_summary(terminalreporter):
+ 
+ 
+ def get_cpu_info():
+-    import cpuinfo
+-
+-    return cpuinfo.get_cpu_info() or {}
++    try:
++        import cpuinfo
++        return cpuinfo.get_cpu_info() or {}
++    except Exception as e:
++        return {"error": str(e)}
+ 
+ 
+ def pytest_benchmark_scale_unit(config, unit, benchmarks, best, worst, sort):

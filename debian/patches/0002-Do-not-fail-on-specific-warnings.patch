@@ -1,0 +1,22 @@
+From: =?utf-8?q?Timo_R=C3=B6hling?= <roehling@debian.org>
+Date: Thu, 14 Sep 2023 21:10:45 +0200
+Subject: Do not fail on specific warnings
+
+Forwarded: not-needed
+---
+ pytest.ini | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/pytest.ini b/pytest.ini
+index cb4764f..922eb16 100644
+--- a/pytest.ini
++++ b/pytest.ini
+@@ -33,6 +33,8 @@ testpaths =
+ # Idea from: https://til.simonwillison.net/pytest/treat-warnings-as-errors
+ filterwarnings =
+     error
++    ignore:pkg_resources is deprecated as an API:DeprecationWarning
++    ignore:PluginImportFixer.find_spec:ImportWarning
+ # You can add exclusions, some examples:
+ #    ignore:'pytest_benchmark' defines default_app_config:PendingDeprecationWarning::
+ #    ignore:The {{% if:::

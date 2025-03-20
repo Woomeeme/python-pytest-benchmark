@@ -10,47 +10,31 @@ Overview
     * - docs
       - |docs| |gitter|
     * - tests
-      - | |travis| |appveyor| |requires|
-        | |coveralls| |codecov|
+      - |github-actions| |coveralls| |codecov|
     * - package
-      - | |version| |wheel| |supported-versions| |supported-implementations|
-        | |commits-since|
-
+      - |version| |wheel| |supported-versions| |supported-implementations| |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/pytest-benchmark/badge/?style=flat
-    :target: https://readthedocs.org/projects/pytest-benchmark
+    :target: https://readthedocs.org/projects/pytest-benchmark/
     :alt: Documentation Status
 
+.. |github-actions| image:: https://github.com/ionelmc/pytest-benchmark/actions/workflows/github-actions.yml/badge.svg
+    :alt: GitHub Actions Build Status
+    :target: https://github.com/ionelmc/pytest-benchmark/actions
 .. |gitter| image:: https://badges.gitter.im/ionelmc/pytest-benchmark.svg
     :alt: Join the chat at https://gitter.im/ionelmc/pytest-benchmark
     :target: https://gitter.im/ionelmc/pytest-benchmark
 
-.. |travis| image:: https://travis-ci.org/ionelmc/pytest-benchmark.svg?branch=master
-    :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/ionelmc/pytest-benchmark
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/ionelmc/pytest-benchmark?branch=master&svg=true
-    :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/ionelmc/pytest-benchmark
-
-.. |requires| image:: https://requires.io/github/ionelmc/pytest-benchmark/requirements.svg?branch=master
-    :alt: Requirements Status
-    :target: https://requires.io/github/ionelmc/pytest-benchmark/requirements/?branch=master
-
-.. |coveralls| image:: https://coveralls.io/repos/ionelmc/pytest-benchmark/badge.svg?branch=master&service=github
+.. |coveralls| image:: https://coveralls.io/repos/github/ionelmc/pytest-benchmark/badge.svg?branch=main
     :alt: Coverage Status
-    :target: https://coveralls.io/r/ionelmc/pytest-benchmark
+    :target: https://coveralls.io/github/ionelmc/pytest-benchmark?branch=main
 
-.. |codecov| image:: https://codecov.io/github/ionelmc/pytest-benchmark/coverage.svg?branch=master
+.. |codecov| image:: https://codecov.io/gh/ionelmc/pytest-benchmark/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
-    :target: https://codecov.io/github/ionelmc/pytest-benchmark
+    :target: https://app.codecov.io/github/ionelmc/pytest-benchmark
 
 .. |version| image:: https://img.shields.io/pypi/v/pytest-benchmark.svg
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/pytest-benchmark
-
-.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/pytest-benchmark/v3.2.2.svg
-    :alt: Commits since latest release
-    :target: https://github.com/ionelmc/pytest-benchmark/compare/v3.2.2...master
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/pytest-benchmark.svg
     :alt: PyPI Wheel
@@ -64,11 +48,18 @@ Overview
     :alt: Supported implementations
     :target: https://pypi.org/project/pytest-benchmark
 
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/pytest-benchmark/v5.1.0.svg
+    :alt: Commits since latest release
+    :target: https://github.com/ionelmc/pytest-benchmark/compare/v5.1.0...main
+
+
 
 .. end-badges
 
 A ``pytest`` fixture for benchmarking code. It will group the tests into rounds that are calibrated to the chosen
-timer. See calibration_ and FAQ_.
+timer.
+
+See calibration_ and FAQ_.
 
 * Free software: BSD 2-Clause License
 
@@ -91,17 +82,17 @@ Examples
 
 But first, a prologue:
 
-    This plugin tightly integrates into pytest. To use this effectively you should know a thing or two about pytest first. 
-    Take a look at the `introductory material <http://docs.pytest.org/en/latest/getting-started.html>`_ 
+    This plugin tightly integrates into pytest. To use this effectively you should know a thing or two about pytest first.
+    Take a look at the `introductory material <http://docs.pytest.org/en/latest/getting-started.html>`_
     or watch `talks <http://docs.pytest.org/en/latest/talks.html>`_.
-    
+
     Few notes:
-    
+
     * This plugin benchmarks functions and only that. If you want to measure block of code
       or whole programs you will need to write a wrapper function.
-    * In a test you can only benchmark one function. If you want to benchmark many functions write more tests or 
-      use `parametrization <http://docs.pytest.org/en/latest/parametrize.html>`.
-    * To run the benchmarks you simply use `pytest` to run your "tests". The plugin will automatically do the 
+    * In a test you can only benchmark one function. If you want to benchmark many functions write more tests or
+      use `parametrization <http://docs.pytest.org/en/latest/parametrize.html>`_.
+    * To run the benchmarks you simply use `pytest` to run your "tests". The plugin will automatically do the
       benchmarking and generate a result table. Run ``pytest --help`` for more details.
 
 This plugin provides a `benchmark` fixture. This fixture is a callable object that will benchmark any function passed
@@ -201,13 +192,8 @@ To run the all tests run::
 Credits
 =======
 
-* Timing code and ideas taken from: https://bitbucket.org/haypo/misc/src/tip/python/benchmark.py
+* Timing code and ideas taken from: https://github.com/vstinner/misc/blob/34d3128468e450dad15b6581af96a790f8bd58ce/python/benchmark.py
 
 .. _FAQ: http://pytest-benchmark.readthedocs.org/en/latest/faq.html
 .. _calibration: http://pytest-benchmark.readthedocs.org/en/latest/calibration.html
 .. _pedantic: http://pytest-benchmark.readthedocs.org/en/latest/pedantic.html
-
-
-
-
-

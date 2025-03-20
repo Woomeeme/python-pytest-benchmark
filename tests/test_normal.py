@@ -5,6 +5,7 @@ Just to make sure the plugin doesn't choke on doctests::
     Yay, doctests!
 
 """
+
 import sys  # noqa
 import time
 from functools import partial
@@ -17,6 +18,7 @@ def test_fast(benchmark):
     @benchmark
     def result():
         return time.sleep(0.000001)
+
     assert result is None
 
     if not benchmark.disabled:
